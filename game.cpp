@@ -138,6 +138,41 @@ void initializeBalls() {
     }
 }
 
+void drawBackground() {
+    // Save the current projection and modelview matrices
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // Draw in normalized device coordinates (-1 to 1) which will always
+    // cover the entire screen regardless of projection
+    glBegin(GL_QUADS);
+    glColor3f(0.2f, 0.1f, 0.05f); // Dark wood color
+    glVertex2f(-1.0f, -1.0f);
+    glVertex2f(1.0f, -1.0f);
+    glVertex2f(1.0f, 1.0f);
+    glVertex2f(-1.0f, 1.0f);
+    glEnd();
+
+    // Add wood grain pattern
+    glColor3f(0.3f, 0.15f, 0.07f);
+    for (int i = 0; i < 20; i++) {
+        float y = -1.0f + i * 0.1f;
+        glBegin(GL_LINES);
+        glVertex2f(-1.0f, y);
+        glVertex2f(1.0f, y);
+        glEnd();
+    }
+
+    // Restore the original matrices
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+}
 // Initialize pockets
 void initializePockets() {
     game.pockets.clear();
@@ -604,6 +639,7 @@ void drawCueStick() {
 // Display function
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
+    drawBackground();
     glLoadIdentity();
 
 	drawTable();
@@ -853,7 +889,6 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(800, 600);
     glutCreateWindow("2D Pool Game");
-
     // Register callbacks
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
