@@ -27,8 +27,8 @@ struct Pocket {
 // Game state
 struct GameState {
     // Table properties
-    float tableWidth = 1.6f;
-    float tableHeight = 0.8f;
+    float tableWidth = 2.0f;
+    float tableHeight = 1.0f;
     float cushionThickness = 0.05f;
 
     // Balls
@@ -65,7 +65,7 @@ struct GameState {
     float friction = 0.9992f;
 
     // Minimum velocity threshold - INCREASED to stop balls sooner
-    float minVelocity = 0.008f;
+    float minVelocity = 0.00777f;
 
 } game;
 
@@ -81,7 +81,7 @@ void initializeBalls() {
         {255, 0, 0},      // Red
         {128, 0, 128},    // Purple
         {255, 165, 0},    // Orange
-        {0, 128, 0},      // Green
+        {155, 131, 131},      // Green
         {128, 0, 0},      // Maroon
         {0, 0, 0},        // Black (8-ball)
         {255, 255, 0},    // Yellow striped
@@ -89,7 +89,7 @@ void initializeBalls() {
         {255, 0, 0},      // Red striped
         {128, 0, 128},    // Purple striped
         {255, 165, 0},    // Orange striped
-        {0, 128, 0},      // Green striped
+        {58, 128, 1},      // Green striped
         {128, 0, 0}       // Maroon striped
     };
 
@@ -177,42 +177,47 @@ void drawBackground() {
 void initializePockets() {
     game.pockets.clear();
 
-    float pocketRadius = 0.08f;
+    float pocketRadius = 0.065f; // Radius of the pockets
     float tableWidth = game.tableWidth;
     float tableHeight = game.tableHeight;
 
     // Add 6 pockets (4 corners, 2 middle sides)
     Pocket pocket;
 
-    // Top-left pocket
-    pocket.x = -tableWidth / 2 - game.cushionThickness / 2;
-    pocket.y = tableHeight / 2 + game.cushionThickness / 2;
+    // Top-left corner pocket (moved outward)
+    pocket.x = -tableWidth / 2 ;
+    pocket.y = tableHeight / 2;
     pocket.radius = pocketRadius;
     game.pockets.push_back(pocket);
 
-    // Top-middle pocket
+    // Top-middle pocket (moved outward)
     pocket.x = 0;
-    pocket.y = tableHeight / 2 + game.cushionThickness / 2;
+    pocket.y = tableHeight / 2 + pocketRadius / 2;
+    pocket.radius = pocketRadius;
     game.pockets.push_back(pocket);
 
-    // Top-right pocket
-    pocket.x = tableWidth / 2 + game.cushionThickness / 2;
-    pocket.y = tableHeight / 2 + game.cushionThickness / 2;
+    // Top-right corner pocket (moved outward)
+    pocket.x = tableWidth / 2  ;
+    pocket.y = tableHeight / 2 ;
+    pocket.radius = pocketRadius;
     game.pockets.push_back(pocket);
 
-    // Bottom-right pocket
-    pocket.x = tableWidth / 2 + game.cushionThickness / 2;
-    pocket.y = -tableHeight / 2 - game.cushionThickness / 2;
+    // Bottom-right corner pocket (moved outward)
+    pocket.x = tableWidth / 2 ;
+    pocket.y = -tableHeight / 2 ;
+    pocket.radius = pocketRadius;
     game.pockets.push_back(pocket);
 
-    // Bottom-middle pocket
+    // Bottom-middle pocket (moved outward)
     pocket.x = 0;
-    pocket.y = -tableHeight / 2 - game.cushionThickness / 2;
+    pocket.y = -tableHeight / 2 - pocketRadius / 2;
+    pocket.radius = pocketRadius;
     game.pockets.push_back(pocket);
 
-    // Bottom-left pocket
-    pocket.x = -tableWidth / 2 - game.cushionThickness / 2;
-    pocket.y = -tableHeight / 2 - game.cushionThickness / 2;
+    // Bottom-left corner pocket (moved outward)
+    pocket.x = -tableWidth / 2 ;
+    pocket.y = -tableHeight / 2 ;
+    pocket.radius = pocketRadius;
     game.pockets.push_back(pocket);
 }
 
@@ -524,23 +529,107 @@ void mouseMotion(int x, int y) {
     }
 }
 void drawTable() {
+    float tableLeft = -game.tableWidth / 2;
+    float tableRight = game.tableWidth / 2;
+    float tableTop = game.tableHeight / 2;
+    float tableBottom = -game.tableHeight / 2;
+    float cushionWidth = game.cushionThickness * 2.0f; // Increase cushion width
+    float curveRadius = 0.1f; // Radius of the curve near the pockets
+
     // Draw table border (dark brown)
     glColor3f(0.4f, 0.2f, 0.1f);
     glBegin(GL_QUADS);
-    glVertex2f(-game.tableWidth / 2 - game.cushionThickness, -game.tableHeight / 2 - game.cushionThickness);
-    glVertex2f(game.tableWidth / 2 + game.cushionThickness, -game.tableHeight / 2 - game.cushionThickness);
-    glVertex2f(game.tableWidth / 2 + game.cushionThickness, game.tableHeight / 2 + game.cushionThickness);
-    glVertex2f(-game.tableWidth / 2 - game.cushionThickness, game.tableHeight / 2 + game.cushionThickness);
+    glVertex2f(tableLeft - cushionWidth, tableBottom - cushionWidth);
+    glVertex2f(tableRight + cushionWidth, tableBottom - cushionWidth);
+    glVertex2f(tableRight + cushionWidth, tableTop + cushionWidth);
+    glVertex2f(tableLeft - cushionWidth, tableTop + cushionWidth);
     glEnd();
 
     // Draw table felt (green gradient)
     glBegin(GL_QUADS);
     glColor3f(0.0f, 0.4f, 0.0f); // Dark green
-    glVertex2f(-game.tableWidth / 2, -game.tableHeight / 2);
-    glVertex2f(game.tableWidth / 2, -game.tableHeight / 2);
+    glVertex2f(tableLeft, tableBottom);
+    glVertex2f(tableRight, tableBottom);
     glColor3f(0.0f, 0.6f, 0.0f); // Light green
-    glVertex2f(game.tableWidth / 2, game.tableHeight / 2);
-    glVertex2f(-game.tableWidth / 2, game.tableHeight / 2);
+    glVertex2f(tableRight, tableTop);
+    glVertex2f(tableLeft, tableTop);
+    glEnd();
+
+    // Draw cushions with curves near the pockets
+    glColor3f(0.2f, 0.5f, 0.2f); // Cushion color
+
+    // Top cushion (with curves near top-left and top-right pockets)
+    glBegin(GL_QUADS);
+    glVertex2f(tableLeft + curveRadius, tableTop);
+    glVertex2f(tableRight - curveRadius, tableTop);
+    glVertex2f(tableRight - curveRadius, tableTop + cushionWidth);
+    glVertex2f(tableLeft + curveRadius, tableTop + cushionWidth);
+    glEnd();
+
+    // Bottom cushion (with curves near bottom-left and bottom-right pockets)
+    glBegin(GL_QUADS);
+    glVertex2f(tableLeft + curveRadius, tableBottom);
+    glVertex2f(tableRight - curveRadius, tableBottom);
+    glVertex2f(tableRight - curveRadius, tableBottom - cushionWidth);
+    glVertex2f(tableLeft + curveRadius, tableBottom - cushionWidth);
+    glEnd();
+
+    // Left cushion (with curves near top-left and bottom-left pockets)
+    glBegin(GL_QUADS);
+    glVertex2f(tableLeft, tableBottom + curveRadius);
+    glVertex2f(tableLeft, tableTop - curveRadius);
+    glVertex2f(tableLeft - cushionWidth, tableTop - curveRadius);
+    glVertex2f(tableLeft - cushionWidth, tableBottom + curveRadius);
+    glEnd();
+
+    // Right cushion (with curves near top-right and bottom-right pockets)
+    glBegin(GL_QUADS);
+    glVertex2f(tableRight, tableBottom + curveRadius);
+    glVertex2f(tableRight, tableTop - curveRadius);
+    glVertex2f(tableRight + cushionWidth, tableTop - curveRadius);
+    glVertex2f(tableRight + cushionWidth, tableBottom + curveRadius);
+    glEnd();
+
+    // Add curved sections near the corner pockets
+    glColor3f(0.2f, 0.5f, 0.2f); // Same color as cushions
+    glBegin(GL_POLYGON);
+    // Top-left corner curve
+    for (int i = 0; i <= 90; i++) {
+        float angle = i * PI / 180.0f;
+        float x = tableLeft + curveRadius * cos(angle);
+        float y = tableTop - curveRadius * sin(angle);
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glBegin(GL_POLYGON);
+    // Top-right corner curve
+    for (int i = 0; i <= 90; i++) {
+        float angle = i * PI / 180.0f;
+        float x = tableRight - curveRadius * cos(angle);
+        float y = tableTop - curveRadius * sin(angle);
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glBegin(GL_POLYGON);
+    // Bottom-left corner curve
+    for (int i = 0; i <= 90; i++) {
+        float angle = i * PI / 180.0f;
+        float x = tableLeft + curveRadius * cos(angle);
+        float y = tableBottom + curveRadius * sin(angle);
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glBegin(GL_POLYGON);
+    // Bottom-right corner curve
+    for (int i = 0; i <= 90; i++) {
+        float angle = i * PI / 180.0f;
+        float x = tableRight - curveRadius * cos(angle);
+        float y = tableBottom + curveRadius * sin(angle);
+        glVertex2f(x, y);
+    }
     glEnd();
 }
 
@@ -569,6 +658,7 @@ void drawBall(const Ball& ball) {
     }
     glEnd();
 }
+
 // Handle mouse clicks for shooting the cue
 void mouseClick(int button, int state, int x, int y) {
     if (game.gameOver || game.ballsMoving) return;
@@ -595,45 +685,117 @@ void mouseClick(int button, int state, int x, int y) {
 }
 
 void drawGameOverScreen() {
-    // Semi-transparent background
-    glColor4f(0.0f, 0.0f, 0.0f, 0.7f);
+    // Draw semi-transparent background for the pop-up
+    glColor4f(0.0f, 0.0f, 0.0f, 0.7f); // Black with transparency
     glBegin(GL_QUADS);
-    glVertex2f(-1.0f, -1.0f);
-    glVertex2f(1.0f, -1.0f);
-    glVertex2f(1.0f, 1.0f);
-    glVertex2f(-1.0f, 1.0f);
+    glVertex2f(-0.5f, -0.3f); // Top-left corner of the pop-up
+    glVertex2f(0.5f, -0.3f);  // Top-right corner of the pop-up
+    glVertex2f(0.5f, 0.3f);   // Bottom-right corner of the pop-up
+    glVertex2f(-0.5f, 0.3f);  // Bottom-left corner of the pop-up
     glEnd();
 
-    // Game Over text
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glRasterPos2f(-0.2f, 0.1f);
+    // Draw border for the pop-up
+    glColor3f(1.0f, 1.0f, 1.0f); // White border
+    glLineWidth(2.0f);
+    glBegin(GL_LINE_LOOP);
+    glVertex2f(-0.5f, -0.3f);
+    glVertex2f(0.5f, -0.3f);
+    glVertex2f(0.5f, 0.3f);
+    glVertex2f(-0.5f, 0.3f);
+    glEnd();
+    glLineWidth(1.0f);
+
+    // Display "Game Over" text
+    glColor3f(1.0f, 1.0f, 1.0f); // White text
+    glRasterPos2f(-0.15f, 0.2f); // Position for "Game Over"
     std::string gameOverText = "GAME OVER";
     for (char c : gameOverText) {
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, c);
     }
 
-    // Restart prompt
-    glRasterPos2f(-0.3f, -0.1f);
+    // Display winner message
+    glRasterPos2f(-0.3f, 0.1f); // Position for winner message
+    std::stringstream winnerStream;
+    winnerStream << "Player " << game.winner << " Wins!";
+    std::string winnerText = winnerStream.str();
+    for (char c : winnerText) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
+    }
+
+    // Display restart prompt
+    glRasterPos2f(-0.4f, -0.1f); // Position for restart prompt
     std::string restartText = "Press 'R' to restart the game";
     for (char c : restartText) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
     }
+
+    // Display exit prompt
+    glRasterPos2f(-0.3f, -0.2f); // Position for exit prompt
+    std::string exitText = "Press 'ESC' to exit";
+    for (char c : exitText) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
+    }
+}
+void drawPockets() {
+    for (size_t i = 0; i < game.pockets.size(); i++) {
+        const Pocket& pocket = game.pockets[i];
+        //Corner Pockets
+        if (i == 0 || i == 2 || i == 3 || i == 5) {
+            glBegin(GL_POLYGON);
+            for (int j = 0; j < 360; j++) { // Draw a full circle (360 degrees)
+                float angle = j * PI / 180.0f;
+                float x = pocket.x + pocket.radius * cos(angle);
+                float y = pocket.y + pocket.radius * sin(angle);
+                glVertex2f(x, y);
+            }
+            glEnd();
+        }
+        // Center pockets (semi-circles)
+        else {
+            glBegin(GL_POLYGON);
+            for (int j = 0; j <= 360; j++) { // Draw a semi-circle (180 degrees)
+                float angle = j * PI / 180.0f;
+
+                // Adjust the semi-circle to face the table
+                float yOffset = (i == 1) ? 1 : -1; // Top or bottom
+                float x = pocket.x + pocket.radius * cos(angle);
+                float y = pocket.y + yOffset * pocket.radius * sin(angle);
+                glVertex2f(x, y);
+            }
+            glEnd();
+        }
+    }
 }
 void drawCueStick() {
     if (!game.ballsMoving && game.cueAiming && game.balls[0].active && !game.gameOver) {
-        float cueStartX = game.balls[0].x + cos(game.cueAngle + PI) * game.balls[0].radius;
-        float cueStartY = game.balls[0].y + sin(game.cueAngle + PI) * game.balls[0].radius;
+        // Calculate the starting position of the cue stick at the edge of the ball (opposite side)
+        float cueStartX = game.balls[0].x - cos(game.cueAngle + PI) * game.balls[0].radius;
+        float cueStartY = game.balls[0].y - sin(game.cueAngle + PI) * game.balls[0].radius;
+
+        // Calculate the ending position of the cue stick based on the aiming angle and power (opposite direction)
         float cueEndX = game.balls[0].x + cos(game.cueAngle) * (game.cueLength + game.cuePower * 3.0f);
         float cueEndY = game.balls[0].y + sin(game.cueAngle) * (game.cueLength + game.cuePower * 3.0f);
 
-        // Draw cue stick
-        glColor3f(0.8f, 0.6f, 0.4f);
-        glLineWidth(4.0f);
+        // Draw the cue stick
+        if (game.currentPlayer == 1) { glColor3f(0.9f, 0.4f, 0.02f); }
+        else { glColor3f(0.5f, 1.0f, 1.0f); }// Cue stick color
+        glLineWidth(8.0f);
         glBegin(GL_LINES);
-        glVertex2f(cueStartX, cueStartY);
-        glVertex2f(cueEndX, cueEndY);
+        glVertex2f(cueStartX, cueStartY); // Start at the edge of the ball (opposite side)
+        glVertex2f(cueEndX, cueEndY);     // Extend outward in the opposite direction
         glEnd();
         glLineWidth(1.0f);
+
+        // Draw the cue end
+        glColor3f(0.8f, 0.8f, 0.8f); // Light gray end
+        glBegin(GL_POLYGON);
+        for (int j = 0; j < 36; j++) {
+            float angle = j * 10 * PI / 180.0f;
+            float x = cueEndX + game.balls[0].radius * 0.3f * cos(angle);
+            float y = cueEndY + game.balls[0].radius * 0.3f * sin(angle);
+            glVertex2f(x, y);
+        }
+        glEnd();
     }
 }
 // Display function
@@ -645,17 +807,8 @@ void display() {
 	drawTable();
 
     // Draw pockets
-    glColor3f(0.0f, 0.0f, 0.0f);
-    for (size_t i = 0; i < game.pockets.size(); i++) {
-        glBegin(GL_POLYGON);
-        for (int j = 0; j < 36; j++) {
-            float angle = j * 10 * PI / 180.0f;
-            float x = game.pockets[i].x + game.pockets[i].radius * cos(angle);
-            float y = game.pockets[i].y + game.pockets[i].radius * sin(angle);
-            glVertex2f(x, y);
-        }
-        glEnd();
-    }
+    glColor3f(0.0f, 0.0f, 0.0f); // Black color for pockets
+    drawPockets();
 
     // Draw balls
     for (size_t i = 0; i < game.balls.size(); i++) {
@@ -708,40 +861,7 @@ void display() {
     }
 
     // Draw cue stick
-    if (!game.ballsMoving && game.cueAiming && game.balls[0].active && !game.gameOver) {
-        glColor3f(0.8f, 0.6f, 0.4f);
-
-        // Determine cue color based on current player
-        if (game.currentPlayer == 1) {
-            glColor3f(0.8f, 0.2f, 0.2f); // Red for player 1
-        }
-        else {
-            glColor3f(0.2f, 0.2f, 0.8f); // Blue for player 2
-        }
-
-        float cueStartX = game.balls[0].x + cos(game.cueAngle + PI) * game.balls[0].radius;
-        float cueStartY = game.balls[0].y + sin(game.cueAngle + PI) * game.balls[0].radius;
-        float cueEndX = game.balls[0].x + cos(game.cueAngle) * (game.cueLength + game.cuePower * 3.0f);
-        float cueEndY = game.balls[0].y + sin(game.cueAngle) * (game.cueLength + game.cuePower * 3.0f);
-
-        glLineWidth(4.0f);
-        glBegin(GL_LINES);
-        glVertex2f(cueStartX, cueStartY);
-        glVertex2f(cueEndX, cueEndY);
-        glEnd();
-        glLineWidth(1.0f);
-
-        // Draw cue tip
-        glColor3f(0.9f, 0.9f, 0.9f); // Light gray tip
-        glBegin(GL_POLYGON);
-        for (int j = 0; j < 36; j++) {
-            float angle = j * 10 * PI / 180.0f;
-            float x = cueEndX + game.balls[0].radius * 0.3f * cos(angle);
-            float y = cueEndY + game.balls[0].radius * 0.3f * sin(angle);
-            glVertex2f(x, y);
-        }
-        glEnd();
-    }
+    drawCueStick();
     // Display score and shots
     glColor3f(1.0f, 1.0f, 1.0f);
     glRasterPos2f(-0.95f, 0.92f);
@@ -825,7 +945,7 @@ void update(int value) {
                 if (fabs(game.balls[i].vx) < game.minVelocity) game.balls[i].vx = 0.0f;
                 if (fabs(game.balls[i].vy) < game.minVelocity) game.balls[i].vy = 0.0f;
             }
-
+            
             // Handle collisions
             handleBallCollisions();
             handleCushionCollisions();
@@ -867,7 +987,7 @@ void keyboard(unsigned char key, int x, int y) {
 
 // Reshape function
 void reshape(int width, int height) {
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, width, height); // Set the viewport to cover the entire window
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
@@ -887,7 +1007,7 @@ int main(int argc, char** argv) {
     // Initialize GLUT
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(800, 600);
+    glutInitWindowSize(1920, 1080);
     glutCreateWindow("2D Pool Game");
     // Register callbacks
     glutDisplayFunc(display);
